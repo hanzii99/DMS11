@@ -1,0 +1,14 @@
+﻿@page "/QCR"
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+<PageTitle> QCR-Document</PageTitle>
+<h1>This is QCR Page</h1>
+
+
+@code {
+    void UploadDocument()
+    {
+        NavigationManager.NavigateTo("/Scan");
+    }
+
+}

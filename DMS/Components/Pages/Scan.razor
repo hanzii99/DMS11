@@ -1,0 +1,61 @@
+﻿@page "/Scan"
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+
+
+<PageTitle>Scan Document </PageTitle>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3 mb-md-0">
+
+
+        <div class="upload-box text-center">
+
+            <h4>Upload Document</h4>
+            <div class="upload-icon mb-3">
+                <img src="/upload.png" alt="upload" />
+            </div>
+            <a type="button" class=" btn btn-upload " href="AddDocument">Upload Now </a>
+            <small class="text-muted d-block mt-2">
+                Drag & Drop file
+            </small>
+        </div>
+    </div>
+</div>
+<style>
+    .upload-box {
+        border: 2px dashed #d9d9d9;
+        border-radius: 12px;
+        padding: 30px 20px;
+        background: #fff;
+    }
+
+        .upload-box h4 {
+            font-size: xx-large;
+            font-weight: bold;
+        }
+
+    .upload-icon img {
+        width: 80px;
+    }
+
+    .btn-upload {
+        background: #10AC84;
+        color: #fff;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 500;
+        border: none;
+    }
+
+        .btn-upload:hover {
+            background: #0e9a76;
+        }
+</style>
+<!-- this is for all document-->
+
+
+@code {
+
+}

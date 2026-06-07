@@ -1,0 +1,111 @@
+﻿
+@page "/FinanceFiles"
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+@using DMS.Models
+@using AppModel = DMS.Models.App
+@inject DMS.Services.AppSevices services
+@inject DMS.Services.DocServices modal
+@inject NavigationManager NavigationManager
+
+<div class="container-fluid py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-3">
+        <h5 class="fw-semibold mb-0">Finance Department</h5>
+        <small class="text-muted">Documents</small>
+        <hr />
+    </div>
+    @if (apps == null)
+    {
+        <p><em>Loading documents...</em></p>
+    }
+    else if (!apps.Any())
+    {
+        <p><em>No documents found.</em></p>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var item in apps)
+            {
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+                    <div class="card file-card p-3 h-100">
+
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <img class="file-icon" src="/xls.png" />
+                            <span class="text-muted">⋮</span>
+                        </div>
+
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="text-muted">Name</th>
+                                    @* <td>@item.Name</td> *@
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.FilePath))
+                                        {
+                                            <a href="@item.FilePath" target="_blank">@item.Name</a>
+                                        }
+                                        else
+                                        {
+                                            @item.Name
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Created By</th>
+                                    <td>@item.CreatedBy</td>
+                                </tr>
+                                @* optional *@
+                                @* 
+                        <tr>
+                            <th>Date</th>
+                            <td>@item.CreatedDate.ToString("dd-MM-yyyy")</td>
+                        </tr> 
+                        *@
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+}
+</div>
+
+@code {
+    private List<AppModel>? apps;   // ✅ list stays
+                                    // ❌ remove single app (not needed)
+
+    protected override async Task OnInitializedAsync()
+    {
+        apps = (await modal.GetAllAsync())
+                        .Where(x => x.Catogary == "Finance")
+                        .ToList();
+    }
+}
+<style>
+    .file-card {
+        border-radius: 10px;
+        border: 1px solid #e6e6e6;
+        transition: 0.2s ease-in-out;
+    }
+
+        .file-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+        }
+
+    .file-icon {
+        width: 36px;
+    }
+
+    .btn-success {
+        border-radius: 6px;
+    }
+</style>

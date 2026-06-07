@@ -1,0 +1,226 @@
+﻿@page "/Account/Login"
+@layout Layout.MainLayout2
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using DMS.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Log in</PageTitle>
+
+<div class="container-fluid min-vh-100 login-wrapper">
+    <div class="row min-vh-100">
+
+        <!-- LEFT SIDE -->
+        <div class="col-lg-6 d-none d-lg-block login-left">
+            <div class="brand">
+                <img src="/group 127.png" />
+            </div>
+
+            <div class="illustration">
+                <img src="/imgbin_document-management-system-digitization-electronic-document-png 1.png" />
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center login-right">
+            <div class="login-card">
+
+                <div class="logo">
+                    <img src="/login logo.png" />
+                </div>
+
+                <h4>Login your account!</h4>
+
+                <EditForm Model="Input" FormName="LoginForm" method="post" OnValidSubmit="LoginUser">
+                    <DataAnnotationsValidator />
+
+                    <div class="input-box">
+                        <InputText @bind-Value="Input.Email" placeholder="Username" />
+                    </div>
+                    <ValidationMessage For="() => Input.Email" />
+
+                    <div class="input-box">
+                        <InputText type="password" @bind-Value="Input.Password" placeholder="Password" />
+                    </div>
+                    <ValidationMessage For="() => Input.Password" />
+
+                    <div class="options mb-2">
+                        <label>
+                            <InputCheckbox @bind-Value="Input.RememberMe" />
+                            Remember me
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-login">LOGIN</button>
+
+                    <div class="switch-link">
+                        Don't have any account?
+                        <a href="/Account/Register">Register</a>
+                    </div>
+                </EditForm>
+
+            </div>
+        </div>
+
+    </div>
+</div>>
+
+
+<style>
+    /* MAIN WRAPPER */
+    .login-wrapper {
+        background: #10AC84;
+      
+    }
+
+    /* LEFT SIDE */
+    .login-left {
+        padding: 40px 50px;
+        color: white;
+        position: relative;
+    }
+
+    .brand img {
+        width: 150px;
+    }
+
+    /* ILLUSTRATION – CENTERED */
+    .illustration {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+        .illustration img {
+            width: 370px;
+            max-width: 100%;
+        }
+
+    /* RIGHT SIDE */
+    .login-right {
+        background: transparent;
+    }
+
+    /* CARD */
+    .login-card {
+        width: 100%;
+        max-width: 460px;
+        min-height: 620px;
+        background: white;
+        border-radius: 26px;
+        padding: 45px 40px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.18);
+        text-align: left;
+    }
+
+    /* LOGO */
+    .logo img {
+        width: 210px;
+        margin-bottom: 18px;
+    }
+
+    /* INPUTS */
+    .input-box {
+        margin-bottom: 20px;
+    }
+
+        .input-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+
+    /* BUTTON */
+    .btn-login {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        border: none;
+        background: #10AC84;
+        color: white;
+        font-weight: 600;
+        margin-top: 25px;
+    }
+
+    /* LINKS */
+    .switch-link {
+        margin-top: 22px;
+        font-size: 0.9rem;
+    }
+
+        .switch-link a {
+            color: #10AC84;
+            font-weight: 600;
+            text-decoration: none;
+        }
+</style>
+
+@code {
+    private string? errorMessage;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        // This doesn't count login failures towards account lockout
+        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "Error: Invalid login attempt.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+    }
+}

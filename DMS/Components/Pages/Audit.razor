@@ -1,0 +1,151 @@
+﻿@page "/Audit"
+@using Microsoft.EntityFrameworkCore
+@using AppModel = DMS.Models.App
+@inject NavigationManager NavigationManager
+@inject DMS.Services.AppSevices services
+@using DMS.Models
+
+@rendermode InteractiveServer
+<PageTitle>Audit-Documents </PageTitle>
+
+ @if (apps == null)
+    {
+        <p><em>Loading documents...</em></p>
+    }
+    else if (!apps.Any())
+    {
+        <p><em>No documents found.</em></p>
+    }
+    else
+    {
+        <div class="container-fluid documents-page">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="mb-0 fw-semibold">Audit Documents</h5>
+            <small class="text-muted">ADD List</small>
+        </div>
+    </div>
+    </div>
+    <hr class="mb-4 opacity-150">
+
+    <div class="card table-card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" /></th>
+                        <th>Docs Name</th>
+                        <th>IP Address</th>
+                        <th>Last Activity</th>
+                        <th>Created by</th>
+                        <th>Last Update</th>
+               
+                    
+                    </tr>
+
+                </thead>
+
+                <tbody>
+                    @foreach (var app in apps)
+                    {
+                      <tr>
+                          <td><input type="checkbox" /></td>
+                        <td>@app.Name</td>
+                         <td>@app.IP</td>
+                         <td>edit</td>
+                          <td>@app.CreatedBy</td>
+                          <td>@app.CreatedDate</td>
+
+
+                    </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+       
+    </div>
+<div class="d-flex justify-content-end mt-3">
+    <nav>
+        <ul class="pagination">
+            <li class="page-item"><a class="page-link">‹</a></li>
+            <li class="page-item active"><a class="page-link">1</a></li>
+            <li class="page-item"><a class="page-link">2</a></li>
+            <li class="page-item"><a class="page-link">3</a></li>
+            <li class="page-item"><a class="page-link">›</a></li>
+        </ul>
+    </nav>
+</div>
+
+
+
+}
+@* } *@
+<style>
+    /* full height modal */
+    .modal-full-height {
+        height: 100%;
+        margin: 0;
+    }
+
+    /* modal content sizing */
+    .right-modal-content {
+        height: 100vh;
+        width: 30vw;
+        max-width: 30vw;
+        border-radius: 0;
+    }
+       .table thead th {
+        font-size: 13px;
+        color: #8a8a8a;
+        font-weight: 500;
+    }
+
+    .table tbody td {
+        font-size: 14px;
+    }
+    
+
+    .btn-upload {
+        background: #10AC84;
+        color: #fff;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 500;
+        border: none;
+    }
+
+    hr {
+        margin-top: 10px;
+        width: 350px;
+    }
+
+    /* responsive */
+    /*  media (max-width: 992px) {
+                .right-modal-content
+
+            {
+                width: 100vw;
+                max-width: 100vw;
+            }
+
+            } */
+</style>
+
+@code {
+    private List<AppModel>? apps;
+    private AppModel app = new();
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        apps = await services.GetAppsAsync();
+    }
+
+}

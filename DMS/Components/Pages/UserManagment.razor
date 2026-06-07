@@ -1,0 +1,277 @@
+﻿@page "/UserManagment"
+@rendermode InteractiveServer
+@using DMS.Models
+@inject DMS.Services.AppSevices AppService
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+<PageTitle>User Management</PageTitle>
+
+<div class="container-fluid documents-page">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="mb-0 fw-semibold">User</h5>
+            <small class="text-muted">List</small>
+        </div>
+
+        <button class="btn btn-upload" @onclick="OpenModal">
+            ADD New User
+        </button>
+    </div>
+
+    <hr class="mb-4 opacity-100">
+
+    <!-- USER TABLE -->
+    <div class="card table-card">
+        <div class="table-responsive">
+
+            <table class="table align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" /></th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Phone No</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var user in userList)
+                    {
+                        <tr>
+                            <td><input type="checkbox" /></td>
+                            <td>@user.Name</td>
+                            <td>@user.Email</td>
+                            <td>@user.AssignRole</td>
+                            <td>@user.PhoneNumber</td>
+                            <td>
+                                <span class="badge
+                                      @(user.Status == "Active" ? " bg-green"  : "bg-red")">
+                                    @user.Status
+                                </span>
+                            </td>
+
+                            <td class="text-center action-icons">
+                                <button class="btn btn-sm btn-light">👁</button>
+                                <button class="btn btn-sm btn-light">✏</button>
+                                <button class="btn btn-sm btn-light"
+                                        @onclick="() => DeleteUser(user.UserId)">
+                                    🗑
+                                </button>
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+
+<!-- MODAL -->
+@if (isModalOpen)
+{
+    <div class="modal fade show d-block">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+
+                <!-- HEADER -->
+                <div class="modal-header">
+                    <h5> User</h5>
+                    <button class="btn-close" @onclick="CloseModal"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label>Name</label>
+                        <input class="form-control" @bind="currentUser.Name" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input class="form-control" @bind="currentUser.Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Role</label>
+                        <input class="form-control" @bind="currentUser.AssignRole" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Phone</label>
+                        <InputText class="form-control" @bind-Value="currentUser.PhoneNumber" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+
+                        <InputSelect TValue="string" class="form-select" @bind-Value="currentUser.Status">
+                            <option value="">Select</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </InputSelect>
+                        <span class="badge
+                                       @(currentUser.Status == "Active" ? "bg-success-subtle" : "bg-danger")">
+                            @currentUser.Status
+                        </span>
+
+                    </div>
+                        
+                  
+                    @* <div class="mb-3">
+                        <label>Status</label>
+                        <input class="form-control" @bind="currentUser.Status" />
+                    </div> *@
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+
+                    <button class="btn btn-secondary" @onclick="CloseModal">
+                        Cancel
+                    </button>
+
+                    <button class="btn btn-success" @onclick="SaveUser">
+                        Save User
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+}
+
+
+
+<style>
+
+    .btn-upload {
+        background: #10AC84;
+        color: white;
+        padding: 10px 22px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 500;
+    }
+
+    .modal-dialog {
+        position: fixed;
+        right: 0;
+        margin: 0;
+        width: 420px;
+        height: 100%;
+    }
+
+    .modal-content {
+        height: 100vh;
+        border-radius: 0;
+    }
+
+        .btn-upload:hover {
+            background: #0e8f6f;
+        }
+
+    hr {
+        width: 1150px;
+    }
+
+    /* RIGHT SIDE MODAL */
+
+    .modal-full-height {
+        height: 100%;
+        margin: 0;
+    }
+
+    .right-modal-content {
+        height: 100vh;
+        width: 30vw;
+        max-width: 30vw;
+        border-radius: 0;}
+        .modal.right .modal-dialog
+
+    {
+        position: fixed;
+        right: 0;
+        margin: auto;
+        width: 400px;
+        height: 100%;
+    }
+
+    .modal.right .modal-content {
+        height: 100%;
+        border-radius: 0;
+    }
+    .bg-green{
+        color: rgba(23, 198, 83, 1); /* Bootstrap Success Green */
+        background-color: rgb(232, 245, 233);
+        font-weight: bold;
+    }
+    .bg-red{
+        color: red;; /* Bootstrap Danger Red */
+        background-color: rgb(255, 235, 238);
+    }
+</style>
+
+
+@code {
+
+    private User currentUser = new();
+
+    private List<User> userList = new();
+
+    private bool isModalOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userList = await AppService.GetUsersAsync();
+    }
+    void OpenModal()
+    {
+        isModalOpen = true;
+    }
+
+
+    void CloseModal()
+    {
+        isModalOpen = false;
+    }
+
+
+    async Task SaveUser()
+    {
+        await AppService.AddUserAsync(currentUser);
+
+        userList = await AppService.GetUsersAsync();
+
+        currentUser = new User();
+
+        isModalOpen = false;
+    }
+    async Task DeleteUser(int id)
+    {
+        await AppService.DeleteUserAsync(id);
+
+        userList = await AppService.GetUsersAsync();
+    }
+
+}

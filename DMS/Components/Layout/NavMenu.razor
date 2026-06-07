@@ -1,0 +1,238 @@
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+
+<div class="hunz">
+    <div class="sidebar-logo">
+        <img src="/logo.png" />
+    </div>
+
+    <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+    <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+        <nav class="flex-column">
+            <aside class="sidebar"></aside>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <img src="/grid_view.png" />
+                    <span class="ABC" aria-hidden="true"></span> DashBoard
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Scan">
+                    <img src="/group 1171276224.png" />
+                    <span class="ABC" aria-hidden="true"></span> Scan
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="QCR">
+                    <img src="/subtract.png" />
+                    <span class="ABC" aria-hidden="true"></span> QCR Document
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Retrieve">
+                    <img src="/group 1171276225.png" />
+                    <span class="ABC" aria-hidden="true"></span> Retrieve Documents
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="AllDocument">
+                    <img src="/assignment.png" />
+                    <span class="ABC" aria-hidden="true"></span> All Documents
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Archive">
+                    <img src="/group 1171276226.png" />
+                    <span class="ABC" aria-hidden="true"></span> Archive Documents
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="UserManagment">
+                    <img src="/person.png" />
+                    <span class="ABC" aria-hidden="true"></span> User Managment
+                </NavLink>
+            </div>
+
+           
+            @* <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Register">
+                    <span class="bi bi-person"></span> Register
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Manage">up
+                    <span class="bi bi-person"></span> User
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="auth">
+                    <span class="bi bi-shield-lock"></span> Auth Required
+                </NavLink>
+            </div> *@
+
+            @* <div class="nav-item px-3">
+                <a class="nav-link" @onclick="ToggleUserMenu" href="#">
+                    <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Settings
+                    <span class="ms-1 bi @(isConfigCollapsed1 ? "bi-chevron-down" : "bi-chevron-up")"></span>
+                </a>
+
+            </div> *@
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="ps-4">
+                        <NavLink class="nav-link" href="Account/Manage">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <form action="Account/Logout" method="post">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="nav-link">
+                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            </button>
+                        </form>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Account/Register">
+                            <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        </NavLink>
+                    </div>
+                   
+                </NotAuthorized>
+            </AuthorizeView>
+
+            <div class="sidebar-footer">
+                Powered by Solochez Pvt. Ltd.
+            </div>
+        </nav>
+    </div>
+</div>
+
+<style>
+    /* Add your CSS here */
+    .hunz {
+        background: #10ac84;
+    }
+
+    .app-wrapper {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        width: 260px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-logo {
+        padding: 20px;
+        text-align: center;
+    }
+
+        .sidebar-logo img {
+            width: 140px;
+        }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+    }
+
+        .sidebar-menu li {
+            padding: 12px 20px;
+        }
+
+            .sidebar-menu li a {
+                color: white;
+                text-decoration: none;
+                font-size: 14px;
+            }
+
+            .sidebar-menu li.active, .sidebar-menu li:hover {
+                background: rgba(255,255,255,0.15);
+                border-left: 4px solid #ffd000;
+            }
+
+    .sidebar-footer {
+        margin-top: auto;
+        padding: 15px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    .ABC {
+        margin: 5px;
+    }
+
+    .main-content {
+        flex: 1;
+        background: #f8f9fb;
+    }
+
+    .topbar {
+        height: 64px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 25px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .topbar .search {
+            width: 260px;
+        }
+
+    .topbar-icons {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+    }
+</style>
+
+@code {
+    private string? currentUrl;
+    private bool isConfigCollapsed = true;
+    private bool isConfigCollapsed1 = true;
+
+    private void ToggleReportsMenu() => isConfigCollapsed = !isConfigCollapsed;
+    private void ToggleUserMenu() => isConfigCollapsed1 = !isConfigCollapsed1;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

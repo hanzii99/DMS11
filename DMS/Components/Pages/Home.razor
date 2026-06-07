@@ -1,0 +1,397 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using DMS.Models
+@using AppModel = DMS.Models.App
+@inject DMS.Services.AppSevices services
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>DashBoard</PageTitle>
+
+<div class="dashboard-wrapper">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-navy">Overview</h4>
+        <a class="btn btn-upload px-4" href="AddDocument">Add New Document</a>
+    </div>
+
+    <!-- STATISTICS CARDS -->
+    <div class="row g-4 mb-5">
+        <!-- Total Documents -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="stat-card">
+                <div class="icon-box bg-teal-light text-teal">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h3 class="stat-value">@App1?.Count()</h3>
+                <p class="stat-label">Total Documents</p>
+                <span class="trend-up">+@TotalDocumentsTrend%</span>
+            </div>
+        </div>
+
+        <!-- Uploaded Today -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="stat-card">
+                <div class="icon-box bg-teal-light text-teal">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <h3 class="stat-value">@App1?.Count(a => a.CreatedDate.Date == DateTime.Now.Date)</h3>
+                <p class="stat-label">Documents Uploaded Today</p>
+                <span class="trend-up">+@UploadedTodayTrend%</span>
+            </div>
+        </div>
+
+        <!-- Incomplete Documents -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="stat-card">
+                <div class="icon-box bg-red-light text-red">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <h3 class="stat-value">@App1?.Count(a => string.IsNullOrEmpty(a.DocumentStatus))</h3>
+                <p class="stat-label">Incomplete Documents</p>
+                <span class="trend-down">-@IncompleteTrend%</span>
+            </div>
+        </div>
+
+        <!-- Pending Documents -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="stat-card">
+                <div class="icon-box bg-yellow-light text-yellow">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h3 class="stat-value">@App1?.Count(a => a.DocumentStatus == "Pending")</h3>
+                <p class="stat-label">Pending Documents</p>
+                <span class="trend-up">+@PendingTrend%</span>
+            </div>
+        </div>
+
+        <!-- Repeated/Processed Documents -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="stat-card">
+                <div class="icon-box bg-teal-light text-teal">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <h3 class="stat-value">@App1?.Count(a => a.DocumentStatus == "Approved")</h3>
+                <p class="stat-label">Approved Documents</p>
+                <span class="trend-up">+@ApprovedTrend%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW: Recent Documents, Activities, Analysis -->
+    <div class="row g-4">
+        <!-- Recent Documents -->
+        <div class="col-lg-4">
+            <div class="content-card">
+                <h5 class="card-title">Recent Documents</h5>
+                <hr class="mb-4 opacity-50">
+                @if (App1 != null && App1.Any())
+                {
+                    @foreach (var doc in App1.OrderByDescending(a => a.CreatedDate).Take(5))
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="doc-icon @(GetDocIconClass(doc.Name))"><i class="@GetDocIcon(doc.Name)"></i></div>
+                            <div class="ms-3">
+                                <p class="mb-0 fw-semibold text-navy small">@doc.Name</p>
+                                <small class="text-muted tiny">@doc.Storage - @doc.CreatedDate.ToString("hh:mm tt dd/MM")</small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No recent documents found.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="col-lg-4">
+            <div class="content-card">
+                <h5 class="card-title">Recent Activities</h5>
+                <hr class="mb-4 opacity-50">
+                @if (App1 != null && App1.Any())
+                {
+                    @foreach (var doc in App1.OrderByDescending(a => a.CreatedDate).Take(5))
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="activity-icon @(GetStatusColor(doc.DocumentStatus))"><i class="@GetStatusIcon(doc.DocumentStatus)"></i></div>
+                            <div class="ms-3">
+                                <p class="mb-0 fw-semibold text-navy small">@doc.Name</p>
+                                <small class="text-muted tiny">@doc.DocumentStatus today</small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No activities found.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Analysis Chart -->
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">Analysis</h5>
+                    <select class="form-select form-select-sm w-auto border-0 bg-light">
+                        <option>Document Flow</option>
+                    </select>
+                </div>
+                <div class="chart-area d-flex align-items-end justify-content-around h-100 pt-4">
+                    <div class="bar bg-teal" style="height:@GetPercentage("Approved")%"></div>
+                    <div class="bar bg-yellow" style="height:@GetPercentage("Pending")%"></div>
+                    <div class="bar bg-teal" style="height:@GetPercentage("Rejected")%"></div>
+                    <div class="bar bg-yellow" style="height:@GetPercentage("Incomplete")%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Dashb/* Page Background */
+
+    .dashboard-wrapper {
+        background: #f5f6fa;
+        padding: 30px;
+        min-height: 100vh;
+    }
+
+    /* Header */
+
+    .text-navy {
+        color: #1d2b53;
+        font-weight: 600;
+    }
+
+    /* Upload Button */
+
+    .btn-upload {
+        background: #18a77a;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-weight: 500;
+    }
+
+        .btn-upload:hover {
+            background: #138a65;
+            color: white;
+        }
+
+    /* Cards */
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        transition: 0.2s;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+    /* Stat Text */
+
+    .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1d2b53;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    /* Trends */
+
+    .trend-up {
+        color: #16a34a;
+        font-size: 12px;
+    }
+
+    .trend-down {
+        color: #dc2626;
+        font-size: 12px;
+    }
+
+    /* Icons */
+
+    .icon-box {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .doc-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .activity-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Card Sections */
+
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
+
+    /* Titles */
+
+    .card-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    /* Chart */
+
+    .chart-area {
+        height: 170px;
+    }
+
+    .bar {
+        width: 14px;
+        border-radius: 5px;
+    }
+
+    /* Colors */
+
+    .bg-teal {
+        background: #2ec4a6;
+    }
+
+    .bg-yellow {
+        background: #f4c430;
+    }
+
+    .bg-red {
+        background: #ef4444;
+    }
+
+    /* Light Backgrounds */
+
+    .bg-teal-light {
+        background: #e7f9f5;
+    }
+
+    .bg-red-light {
+        background: #fde8e8;
+    }
+
+    .bg-yellow-light {
+        background: #fff6d6;
+    }
+
+    /* Text Colors */
+
+    .text-teal {
+        color: #2ec4a6;
+    }
+
+    .text-red {
+        color: #ef4444;
+    }
+
+    .text-yellow {
+        color: #f4c430;
+    }
+
+    /* Small text */
+
+    .small {
+        font-size: 13px;
+    }
+
+    .tiny {
+        font-size: 11px;
+    }
+</style>
+
+@code {
+    private List<AppModel>? App1;
+    private AppModel app = new();
+
+    // Trends (optional: replace with real calculation)
+    private int TotalDocumentsTrend = 55;
+    private int UploadedTodayTrend = 5;
+    private int IncompleteTrend = 14;
+    private int PendingTrend = 8;
+    private int ApprovedTrend = 8;
+
+    protected override async Task OnInitializedAsync()
+    {
+        App1 = await services.GetAppsAsync();
+    }
+
+    // Chart helper
+    private int GetPercentage(string status)
+    {
+        if (App1 == null || !App1.Any()) return 0;
+        int total = App1.Count();
+        int count = status switch
+        {
+            "Approved" => App1.Count(a => a.DocumentStatus == "Approved"),
+            "Pending" => App1.Count(a => a.DocumentStatus == "Pending"),
+            "Rejected" => App1.Count(a => a.DocumentStatus == "Rejected"),
+            "Incomplete" => App1.Count(a => string.IsNullOrEmpty(a.DocumentStatus)),
+            _ => 0
+        };
+        return (int)((count / (double)total) * 100);
+    }
+
+    // Recent Documents helpers
+    private string GetDocIcon(string fileName)
+    {
+        if (fileName.EndsWith(".pdf")) return "bi-file-earmark-pdf";
+        if (fileName.EndsWith(".xlsx")) return "bi-file-earmark-excel";
+        if (fileName.EndsWith(".docx")) return "bi-file-earmark-word";
+        return "bi-file-earmark";
+    }
+
+    private string GetDocIconClass(string fileName)
+    {
+        if (fileName.EndsWith(".pdf")) return "bg-red-light text-red";
+        if (fileName.EndsWith(".xlsx")) return "bg-teal-light text-teal";
+        if (fileName.EndsWith(".docx")) return "bg-yellow-light text-yellow";
+        return "bg-teal-light text-teal";
+    }
+
+    // Recent Activities helpers
+    private string GetStatusIcon(string status) => status switch
+    {
+        "Approved" => "bi-check-circle",
+        "Rejected" => "bi-x-circle",
+        "Pending" => "bi-clock-history",
+        _ => "bi-question-circle"
+    };
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Approved" => "bg-teal-light text-teal",
+        "Rejected" => "bg-red-light text-red",
+        "Pending" => "bg-yellow-light text-yellow",
+        _ => "bg-gray-light text-gray"
+    };
+}

@@ -1,0 +1,209 @@
+﻿@page "/AllDocument"
+@rendermode InteractiveServer
+@using DMS.Models
+@using AppModel = DMS.Models.App
+@inject DMS.Services.AppSevices services
+@inject DMS.Services.DocServices modal
+@inject NavigationManager NavigationManager
+
+<PageTitle>All Documents</PageTitle>
+
+<div class="container-fluid documents-page">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="mb-0 fw-semibold">All Documents</h5>
+            <small class="text-muted">Complete List</small>
+        </div>
+        <div>
+            <a class="btn btn-success px-4" href="/AddDocument">
+                Add New Document
+            </a>
+        </div>
+    </div>
+
+    @if (apps == null)
+    {
+        <p><em>Loading documents...</em></p>
+    }
+    else if (!apps.Any())
+    {
+        <p><em>No documents found.</em></p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Storage</th>
+                            <th>Created By</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                            @* <th>Client</th>
+                            <th>Meta Tags</th>
+                            <th>Description</th>
+                            <th>Assign Role</th>
+                            <th>Assign User</th>
+                            <th class="text-center">Actions</th> *@
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var app in apps)
+                        {
+                            <tr>
+                                <td>@app.ID</td>
+                                <td>@app.Name</td>
+                                <td>@app.Catogary</td>
+                                <td>@app.Storage</td>
+                                <td>@app.CreatedBy</td>
+                                <td>
+                                    @if (app.DocumentStatus == "Pending")
+                                    {
+                                        <span class="badge bg-success">@app.DocumentStatus</span>
+                                    }
+                                    else if (app.DocumentStatus == "Approved")
+                                    {
+                                        <span class="badge bg-primary">@app.DocumentStatus</span>
+                                    }
+                                    else if (app.DocumentStatus == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">@app.DocumentStatus</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-dark">Unknown</span>
+                                    }
+                                </td>
+                                @* <td>@app.Client</td>
+                                <td>@app.MetaTags</td>
+                                <td>@app.Description</td>
+                                <td>@app.AssignRole</td>
+                                <td>@app.AssignUser</td> *@
+
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => DeleteDocument(app.ID)">
+
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <button class="btn btn-primary"
+                                            @onclick="() => EditDocument(app.ID)">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<AppModel>? apps;
+    private AppModel app = new();
+   
+
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        apps = await modal.GetAllAsync();
+        apps = await services.GetAppsAsync();
+    }
+
+    private async Task DeleteDocument(int id)
+    {
+        await services.DeleteAppAsync(id);
+        apps = await services.GetAppsAsync();
+    }
+
+    private void EditDocument(int id)
+    {
+        NavigationManager.NavigateTo($"/AddDocument/{id}");
+    }
+}
+
+
+
+<style>
+
+    .documents-page {
+        padding: 25px;
+        background: #f8f9fb;
+    }
+
+    /* Cards */
+    .filter-card,
+    .table-card {
+        border-radius: 12px;
+        border: none;
+    }
+
+    /* Table */
+    .table thead th {
+        font-size: 13px;
+        color: #8a8a8a;
+        font-weight: 500;
+    }
+
+    .table tbody td {
+        font-size: 14px;
+    }
+
+    /* Status badges */
+    .badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .badge-pending {
+        background: #ffe5e5;
+        color: #ff4d4f;
+    }
+
+    .badge-approved {
+        background: #e8f8ef;
+        color: #22c55e;
+    }
+
+    /* Action icons */
+    .action-icons button {
+        border: none;
+        background: #f1f1f1;
+        border-radius: 6px;
+        padding: 6px 8px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+    /* Pagination */
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 0 3px;
+    }
+
+    .btn-upload {
+        background: #10AC84;
+        color: #fff;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 500;
+        border: none;
+    }
+
+        .btn-upload:hover {
+            background: #0e9a76;
+        }
+</style>

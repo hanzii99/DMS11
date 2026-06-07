@@ -1,0 +1,249 @@
+﻿@page "/AddDocument"
+@page "/AddDocument/{Id:int}"
+@rendermode InteractiveServer
+
+@using AppModel = DMS.Models.App
+@inject DMS.Services.AppSevices services
+@inject DMS.Services.DocServices modal
+
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add Document</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+
+            <div class="card p-4">
+                <h5 class="fw-semibold mb-4">Add New Document</h5>
+
+                <EditForm Model="@app" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Upload Document</label>
+                        <InputFile OnChange="HandleFileSelected" class="form-control" />
+                        @if (!string.IsNullOrEmpty(_fileName))
+                        {
+                            <small class="text-muted">Selected File: @_fileName</small>
+                        }
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Name</label>
+                            <InputText class="form-control" @bind-Value="app.Name" />
+                        </div>
+                      
+                            <div class="col-md-4">
+                                <label class="form-label">Catogary</label>
+                                <InputSelect class="form-select" @bind-Value="app.Catogary">
+                                    <option value="">Select</option>
+                                    <option>Finance</option>
+                                    <option>HR</option>
+                                    <option>Project</option>
+                                <option>Managment</option>
+
+                                </InputSelect>
+                            </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Storage</label>
+                            <InputSelect class="form-select" @bind-Value="app.Storage" >
+                                <option value="">Select</option>
+                                <option>LocalDisk-C</option>
+                                <option>LocalDisk-D</option>
+                                <option>LocalDisk-E</option>
+                            </InputSelect>
+                        </div>
+
+                        @* <div class="col-md-3">
+                            <label class="form-label">Storage</label>
+                            <InputText class="form-control" @bind-Value="app.Storage" />
+                        </div> *@
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Created By</label>
+                            <InputText class="form-control" @bind-Value="app.CreatedBy" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Document Status</label>
+                            <InputSelect class="form-select" @bind-Value="app.DocumentStatus">
+                                <option value="">Select</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </InputSelect>
+                        </div>
+                         <div class="col-md-4">
+                            <label class="form-label">Client</label>
+                            <InputSelect class="form-select" @bind-Value="app.Client">
+                                <option value="">Select</option>
+                                <option value="Pending" >User1</option>
+                                <option value="Approved" >User2</option>
+                                <option value="Rejected" >User3</option>
+                            </InputSelect>
+                            </div>
+                    </div>
+                     <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Meta Tags</label>
+                        <InputText class="form-control" @bind-Value="app.MetaTags" />
+                    </div>
+                        <div class="col-md-6"
+                            <label class="form-label">IP Address</label>
+                            <InputText class="form-control" @bind-Value="app.IP" />
+                        </div>
+                    </div>
+                  
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <InputTextArea class="form-control" rows="3" @bind-Value="app.Description" />
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Assign Role</label>
+                            <InputSelect class="form-select" @bind-Value="app.AssignRole">
+                                <option value="">Select</option>
+                                <option value="Pending">Admin</option>
+                                <option value="Approved">SuperAdmin</option>
+                                <option value="Rejected">User</option>
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">User</label>
+                            <InputSelect class="form-select" @bind-Value="app.AssignUser">
+                                <option value="" class="disabled">Select</option>
+                                <option value="Pending">User1</option>
+                                <option value="Approved">User2</option>
+                                <option value="Rejected">User3</option>
+                            </InputSelect>
+                        </div>
+
+                    @*     <div class="col-md-6">
+                            <label class="form-label">Assign User</label>
+                            <InputText class="form-control" @bind-Value="app.AssignUser" />
+                        </div>
+                    *@
+                    </div>
+                    <div class="d-flex justify-content-end gap-3">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                @onclick="Cancel">
+                            Cancel
+                        </button>
+
+                        <button type="submit" class="btn btn-success">
+                            Save Document
+                        </button>
+                    </div>
+                </EditForm>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private AppModel app = new(); // ✅ CreatedDate removed
+    // App model = new();
+    private IBrowserFile? selectedFile;
+    private string _fileName = "";
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        _fileName = selectedFile.Name;
+
+        // Save file immediately to wwwroot/uploads folder
+        var path = Path.Combine("wwwroot/uploads", selectedFile.Name);
+
+        using var stream = selectedFile.OpenReadStream();
+        using var fileStream = new FileStream(path, FileMode.Create);
+        await stream.CopyToAsync(fileStream);
+
+        // Store relative path in app.FilePath for later display
+        app.FilePath = $"/uploads/{selectedFile.Name}";
+    }
+    [Parameter]
+    public int? Id { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            var existing = await services.GetAppByIdAsync(Id.Value);
+
+            if (existing != null)
+            {
+                app = existing;
+            }
+        }
+    }
+    private async Task HandleSubmit()
+    {
+        if (Id == null)
+        {
+            await services.AddAppAsync(app);   // CREATE
+        }
+        else
+        {
+            await services.UpdateAppAsync(app); // UPDATE
+        }
+
+        NavigationManager.NavigateTo("/AllDocument");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/AllDocument");
+    }
+    async Task Save()
+    {
+        app.CreatedDate = DateTime.Now;   // AUTO DATE
+        app.Catogary = "Finance";         // or from dropdown
+
+        await modal.AddAppAsync(app);
+    }
+}
+<style>
+
+
+    .upload-card {
+        border-radius: 14px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+
+
+    .upload-icon img {
+        width: 80px;
+    }
+
+
+
+    /* Buttons */
+    .btn-upload {
+        background: #10AC84;
+        color: #fff;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 500;
+        border: none;
+    }
+
+        .btn-upload:hover {
+            background: #0e9a76;
+        }
+
+    /* Inputs */
+    .form-control,
+    .form-select {
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+</style>
